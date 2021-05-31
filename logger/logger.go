@@ -12,8 +12,6 @@ func OpenLog(logRouter *gin.Engine) {
 	gin.DisableConsoleColor()
 
 	f, _ := os.Create("gin.log")
-
-
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	gin.DefaultErrorWriter = io.MultiWriter(f, os.Stderr)
 
@@ -23,6 +21,7 @@ func OpenLog(logRouter *gin.Engine) {
 	fmt.Fprintln(gin.DefaultWriter, "[GIN-debug] log system open")
 	var err error
 	if err != nil {
-		fmt.Fprintf(gin.DefaultErrorWriter, "[GIN-debug] [ERROR] %v\n", err)}
+		fmt.Fprintf(gin.DefaultErrorWriter, "[GIN-debug] [ERROR] %v\n", err)
+	}
 
 }
