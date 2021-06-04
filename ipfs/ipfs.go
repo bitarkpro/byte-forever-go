@@ -18,7 +18,7 @@ func UploadIPFS(file multipart.File) string {
 	hash, err := sh.Add(bufio.NewReader(file))
 
 	if err != nil {
-		fmt.Println("上传ipfs时错误：", err)
+		fmt.Println("upload ipfs err：", err)
 		return ""
 	}
 	return hash
