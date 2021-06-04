@@ -1,18 +1,18 @@
-
 package minio
 
 import (
-"FileStore-Server/config"
-"fmt"
-"github.com/gin-gonic/gin"
-"github.com/minio/minio-go/v7"
-"github.com/minio/minio-go/v7/pkg/credentials"
-"golang.org/x/net/context"
+	cfg "FileStore-Server/config"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+	"golang.org/x/net/context"
 )
 
 //Object storage
-func UploadMinio(objectName string,filePath string,ext string,) bool {
+func UploadMinio(objectName string, filePath string, ext string) bool {
 	fmt.Fprintln(gin.DefaultWriter, "[GIN-debug] enter UploadMinio")
+	config := cfg.Conf
 	ctx := context.Background()
 	minioClient, err := minio.New(config.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.AccesskeyID, config.AccessKeySecret, ""),
@@ -22,7 +22,7 @@ func UploadMinio(objectName string,filePath string,ext string,) bool {
 		fmt.Fprintf(gin.DefaultErrorWriter, "[GIN-debug] [ERROR]creat minio err %v\n", err)
 		return false
 	}
-	contentType := "application/"+ext
+	contentType := "application/" + ext
 	// Upload
 	info, err := minioClient.FPutObject(ctx, config.Bucket, objectName, filePath, minio.PutObjectOptions{ContentType: contentType})
 	if err != nil {

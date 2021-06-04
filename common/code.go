@@ -3,21 +3,18 @@ package common
 type ErrorCode int32
 
 const (
-	StatusCodeInvalid = 40029
-	//success
-	StatusSuccess = 200
-	//fail
+	StatusSuccess      = 200
 	StatusFailed       = 500
 	StatusTokenInvalid = -1
-	StatusUserNotExist = 422
-	PhoneNumLen        = 11
-	DecPhoneFailed     = 500
 
-	AddStarFile    = 1
-	CancelStarFile = 0
-
+	AddStarFile           = 1
+	CancelStarFile        = 0
+	CodeInvalid           = "invalid code"
+	TokenInvalid          = "invalid token"
+	TokenUpdateFail       = "UPdate token failed"
 	UserNoexist           = "User does not exist, please login or register first"
 	UserLoginSuc          = "Log in successfully"
+	UserLoginfail         = "Log in failed"
 	IdNoexist             = "ID error, query failed"
 	ViewUserInfoSuc       = "Query user information successful"
 	ViewUserInfoFail      = "Failed to query user information"
@@ -44,5 +41,4 @@ const (
 
 	UpdateFileSuc  = "Update success"
 	UpdateFileFail = "Update fail"
-
 )

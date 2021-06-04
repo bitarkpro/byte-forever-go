@@ -64,7 +64,6 @@ func UpdateToken(phone string, token string) bool {
 	return true
 }
 
-
 func GetUserInfo(phone string) (User, error) {
 	user := User{}
 	stmt, err := mydb.DBConn().Prepare(
@@ -100,17 +99,10 @@ func WxInsertReqData(openid string, sessionKey string) bool {
 		fmt.Println(err.Error())
 		return false
 	}
-	/*if rowsAffected, err := ret.RowsAffected(); nil == err && rowsAffected > 0 {
-		fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] enter WxInsertReqData666\n")
-		return true
-	}*/
 	return true
 }
 
 func WxInsertUserData(phone string, openid string, sessionkey string) bool {
-	fmt.Fprintln(gin.DefaultWriter, "logsystem open:", openid)
-	fmt.Fprintln(gin.DefaultWriter, "logsystem sessionkey:", sessionkey)
-	fmt.Fprintln(gin.DefaultWriter, "logsystem phone:", phone)
 
 	stmt, err := mydb.DBConn().Prepare(
 		"insert ignore into tbl_user (`openid`,`phone`,`session_key`) values (?,?,?)")

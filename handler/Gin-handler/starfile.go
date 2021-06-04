@@ -16,8 +16,8 @@ func AddStarFileHandler(c *gin.Context) {
 	phone := IsTokenExist(token)
 	if phone == "" {
 		c.JSON(http.StatusOK, gin.H{
-			"msg":  common.UserNoexist,
-			"code": common.StatusFailed,
+			"code": common.StatusTokenInvalid,
+			"msg":  common.TokenInvalid,
 		})
 		return
 	}
@@ -80,8 +80,8 @@ func CancelStarFileHandler(c *gin.Context) {
 	phone := IsTokenExist(token)
 	if phone == "" {
 		c.JSON(http.StatusOK, gin.H{
-			"msg":  common.UserNoexist,
-			"code": common.StatusFailed,
+			"code": common.StatusTokenInvalid,
+			"msg":  common.TokenInvalid,
 		})
 		return
 	}

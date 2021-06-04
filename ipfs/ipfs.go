@@ -1,7 +1,8 @@
 package ipfs
 
 import (
-	"FileStore-Server/config"
+	cfg "FileStore-Server/config"
+	"bufio"
 	"fmt"
 	shell "github.com/ipfs/go-ipfs-api"
 	"io/ioutil"
@@ -12,9 +13,10 @@ var sh *shell.Shell
 
 //upload file to IPFS
 func UploadIPFS(file multipart.File) string {
+	config := cfg.Conf
 	sh = shell.NewShell(config.IpfsUploadServiceHost)
-	//hash, err := sh.Add(bufio.NewReader(file))
-	hash, err := sh.Add(file)
+	hash, err := sh.Add(bufio.NewReader(file))
+
 	if err != nil {
 		fmt.Println("上传ipfs时错误：", err)
 		return ""
@@ -24,6 +26,7 @@ func UploadIPFS(file multipart.File) string {
 
 //download filde from IPFS
 func CatIPFS(cid string) ([]byte, error) {
+	config := cfg.Conf
 	sh = shell.NewShell(config.IpfsUploadServiceHost)
 	read, err := sh.Cat(cid)
 	if err != nil {

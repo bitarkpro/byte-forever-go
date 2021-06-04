@@ -16,9 +16,9 @@ const (
 	MaxOpenConns = 10000
 )
 
-func Init() {
+func Init(conf cfg.Config) {
 	fmt.Fprintln(gin.DefaultWriter, "[GIN-debug] access db init")
-	Db, _ = sql.Open(cfg.DriverName, cfg.DataSourceName)
+	Db, _ = sql.Open(conf.DriverName, conf.DataSourceName)
 
 	if Db == nil {
 		fmt.Fprintln(gin.DefaultWriter, "[GIN-debug] db is nil")

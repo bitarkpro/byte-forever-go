@@ -3,7 +3,7 @@ package GinHandler
 import (
 	"FileStore-Server/common"
 	"FileStore-Server/compress"
-	"FileStore-Server/config"
+	cfg "FileStore-Server/config"
 	"FileStore-Server/db"
 	"FileStore-Server/ipfs"
 	"FileStore-Server/meta"
@@ -47,7 +47,7 @@ type Folderdata struct {
 
 //DoUploadHandler: 处理文件上传
 func DoUploadHandler(c *gin.Context) {
-	fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] %s :insertDoUploadHandler")
+	fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] enter DoUploadHandler")
 	token := c.Request.Header.Get("token")
 	fileType := c.Request.FormValue("fileType")
 	folderType, _ := strconv.Atoi(c.Request.FormValue("folderType"))
@@ -65,8 +65,8 @@ func DoUploadHandler(c *gin.Context) {
 	phone := IsTokenExist(token)
 	if phone == "" {
 		c.JSON(http.StatusOK, gin.H{
-			"code": common.StatusFailed,
-			"msg":  common.UserNoexist,
+			"code": common.StatusTokenInvalid,
+			"msg":  common.TokenInvalid,
 		})
 		return
 	}
@@ -96,10 +96,8 @@ func DoUploadHandler(c *gin.Context) {
 		}
 	}()
 
-	//获取表单上传的文件，并打开
 	defer file.Close()
 
-	//创建文件元信息实例
 	fileMeta := meta.FileMeta{}
 	fileMeta.FileName = head.Filename
 	fileMeta.Ext = db.GetFileExt(head.Filename)
@@ -109,35 +107,34 @@ func DoUploadHandler(c *gin.Context) {
 	fileMeta.Tags = tags
 	fileMeta.FolderType = folderType
 
-	//查询用户存储空间
 	userStorage, _ := db.QueryUserStroage(phone)
 	if err != nil {
 		errCode = -2
 		return
 	}
+	config := cfg.Conf
 	userStorage.Totalstor += fileMeta.FileSize
 	if userStorage.Totalstor > config.UserTotalSpace {
 		fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] \"up： %d\n", userStorage.Totalstor)
 		errCode = 0
 		return
 	}
-	sh = shell.NewShell(config.IpfsUploadServiceHost)
 
 	//创建本地文件
 	filePath := "ipfsfile/" + head.Filename
 	localFile, err := os.Create(filePath)
-	//复制文件信息到本地文件
 
 	fileMeta.FileSize, err = io.Copy(bufio.NewWriter(localFile), file)
+	file.Seek(0, 0)
 
-	fileMeta.Cid = ipfs.UploadIPFS(localFile)
-	localFile.Close()
-	if fileMeta.Cid == ""{
-		fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] [ERROR] file=%s upload IPFS failed \n",head.Filename)
+	sh = shell.NewShell(config.IpfsUploadServiceHost)
+	fileMeta.Cid = ipfs.UploadIPFS(file)
+	if fileMeta.Cid == "" {
+		fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] [ERROR] file=%s upload IPFS failed \n", head.Filename)
 		errCode = -10
 		return
 	}
-	fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] \"upload suc cid： %s\n", fileMeta.Cid)
+	fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] upload suc cid：%s\n", fileMeta.Cid)
 	//压缩到本地
 	var minioFileName string
 	var fileComPressPath string
@@ -155,10 +152,10 @@ func DoUploadHandler(c *gin.Context) {
 			errCode = -3
 			return
 		}
-		fileComPressPath= compress.Picture(videoComPressPath)
+		fileComPressPath = compress.Picture(videoComPressPath)
 	}
-	temp := strings.Split(fileComPressPath,"/")
-	if len(temp) <=1 {
+	temp := strings.Split(fileComPressPath, "/")
+	if len(temp) <= 1 {
 		errCode = -4
 		return
 	}
@@ -188,7 +185,7 @@ func DoUploadHandler(c *gin.Context) {
 		return
 	}
 	//delete local file
-	if videoComPressPath!=""{
+	if videoComPressPath != "" {
 		err = os.Remove(videoComPressPath)
 		if err != nil {
 			fmt.Fprintf(gin.DefaultErrorWriter, "[GIN-debug] [ERROR] %v\n", err)
@@ -196,30 +193,20 @@ func DoUploadHandler(c *gin.Context) {
 			return
 		}
 	}
-
-	if fileComPressPath == filePath {
-		err = os.Remove(filePath)
-		if err != nil {
-			fmt.Fprintf(gin.DefaultErrorWriter, "[GIN-debug] [ERROR] %v\n", err)
-			errCode = -9
-			return
-		}
-		errCode = 1
-		return
-	}
-	fmt.Fprintf(gin.DefaultWriter, "[GIN-debug]filePath= %s\n",filePath)
-	fmt.Fprintf(gin.DefaultWriter, "[GIN-debug]fileComPressPath=%s\n",fileComPressPath)
-	err = os.Remove(fileComPressPath)
+	err = os.Remove(filePath)
 	if err != nil {
 		fmt.Fprintf(gin.DefaultErrorWriter, "[GIN-debug] [ERROR] %v\n", err)
-		errCode = -9
+		errCode = -11
 		return
 	}
-	err = os.Remove(filePath)
-	if err != nil{
-		fmt.Fprintf(gin.DefaultErrorWriter, "[GIN-debug] [ERROR] %v\n", err)
-		errCode = -9
-		return
+
+	if (fileComPressPath != videoComPressPath) && (fileComPressPath != filePath) {
+		err = os.Remove(fileComPressPath)
+		if err != nil {
+			fmt.Fprintf(gin.DefaultErrorWriter, "[GIN-debug] [ERROR] %v\n", err)
+			errCode = -12
+			return
+		}
 	}
 
 	errCode = 1
@@ -236,8 +223,8 @@ func GetFolderHandler(c *gin.Context) {
 	phone := IsTokenExist(token)
 	if phone == "" {
 		c.JSON(http.StatusOK, gin.H{
-			"code": common.StatusFailed,
-			"msg":  common.UserNoexist,
+			"code": common.StatusTokenInvalid,
+			"msg":  common.TokenInvalid,
 		})
 		return
 	}
@@ -474,8 +461,8 @@ func FileDeleteHandler(c *gin.Context) {
 	phone := IsTokenExist(token)
 	if phone == "" {
 		c.JSON(http.StatusOK, gin.H{
-			"code": common.StatusFailed,
-			"msg":  common.UserNoexist,
+			"code": common.StatusTokenInvalid,
+			"msg":  common.TokenInvalid,
 		})
 		return
 	}
@@ -537,8 +524,8 @@ func GetHomePageHandler(c *gin.Context) {
 	phone := IsTokenExist(token)
 	if phone == "" {
 		c.JSON(http.StatusOK, gin.H{
-			"code": common.StatusFailed,
-			"msg":  common.UserNoexist,
+			"code": common.StatusTokenInvalid,
+			"msg":  common.TokenInvalid,
 		})
 		return
 	}
@@ -622,8 +609,8 @@ func GetRecentHandler(c *gin.Context) {
 	phone := IsTokenExist(token)
 	if phone == "" {
 		c.JSON(http.StatusOK, gin.H{
-			"code": common.StatusFailed,
-			"msg":  common.UserNoexist,
+			"code": common.StatusTokenInvalid,
+			"msg":  common.TokenInvalid,
 		})
 		return
 	}

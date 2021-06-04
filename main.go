@@ -1,7 +1,7 @@
 package main
 
 import (
-	"FileStore-Server/config"
+	cfg "FileStore-Server/config"
 	"FileStore-Server/db/mysql"
 	"FileStore-Server/route"
 	"fmt"
@@ -9,9 +9,10 @@ import (
 )
 
 func main() {
-	mysql.Init()
 	fmt.Printf("[GIN-debug] enter main\n")
+	conf := cfg.GetConf("conf.yaml")
+	mysql.Init(conf)
 
 	router := route.Router()
-	router.Run(config.UploadServiceHost)
+	router.Run(conf.UploadServiceHost)
 }

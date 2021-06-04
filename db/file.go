@@ -1,7 +1,7 @@
 package db
 
 import (
-	"FileStore-Server/config"
+	cfg "FileStore-Server/config"
 	mydb "FileStore-Server/db/mysql"
 	"database/sql"
 	"fmt"
@@ -30,7 +30,6 @@ type FileData struct {
 	Comment string
 	Tags    string
 }
-
 
 func GetFileMeta(phone string, cid string) (*TableFile, error) {
 	fmt.Fprintf(gin.DefaultWriter, "[GIN-debug] enter GetFileMeta\n")
@@ -129,7 +128,7 @@ func ViewStarFile(phone string) []TableFile {
 	results, _ := stmt.Query(phone)
 	for results.Next() {
 		err = results.Scan(&tfile.Id, &tfile.Cid, &tfile.FileName, &tfile.Ext, &tfile.FileType, &tfile.FileSize,
-			&tfile.CreatAt, &tfile.Comment, &tfile.FolderType, &tfile.Star, &tfile.Tags,&tfile.MinioUrl)
+			&tfile.CreatAt, &tfile.Comment, &tfile.FolderType, &tfile.Star, &tfile.Tags, &tfile.MinioUrl)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -163,7 +162,7 @@ func GetFolderData(phone string, foldertype int) ([]TableFile, error) {
 	results, _ := stmt.Query(phone, foldertype)
 	for results.Next() {
 		err = results.Scan(&tfile.Id, &tfile.Cid, &tfile.FileName, &tfile.Ext, &tfile.FileType, &tfile.FileSize,
-			&tfile.CreatAt, &tfile.Comment, &tfile.FolderType, &tfile.Star, &tfile.Tags,&tfile.MinioUrl)
+			&tfile.CreatAt, &tfile.Comment, &tfile.FolderType, &tfile.Star, &tfile.Tags, &tfile.MinioUrl)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -218,7 +217,7 @@ func GetHomePageData(phone string, foldertype int) []TableFile {
 	var homePageFile [3]TableFile
 	results, _ := stmt.Query(phone, foldertype)
 	for results.Next() {
-		err = results.Scan(&tfile.Id, &tfile.Cid, &tfile.FileName, &tfile.Ext, &tfile.FileType, &tfile.FileSize, &tfile.CreatAt, &tfile.Comment, &tfile.FolderType, &tfile.Star, &tfile.Tags,&tfile.MinioUrl)
+		err = results.Scan(&tfile.Id, &tfile.Cid, &tfile.FileName, &tfile.Ext, &tfile.FileType, &tfile.FileSize, &tfile.CreatAt, &tfile.Comment, &tfile.FolderType, &tfile.Star, &tfile.Tags, &tfile.MinioUrl)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -248,11 +247,12 @@ func GetRecentFile(phone string) []TableFile {
 	var tfile TableFile
 	var i = 0
 	var starfle [50]TableFile
+	config := cfg.Conf
 	createdAt := time.Now().Unix() - config.MaxAge
 	results, _ := stmt.Query(phone, createdAt)
 	for results.Next() {
 		err = results.Scan(&tfile.Id, &tfile.Cid, &tfile.FileName, &tfile.Ext, &tfile.FileType, &tfile.FileSize,
-			&tfile.CreatAt, &tfile.Comment, &tfile.FolderType, &tfile.Star, &tfile.Tags,&tfile.MinioUrl)
+			&tfile.CreatAt, &tfile.Comment, &tfile.FolderType, &tfile.Star, &tfile.Tags, &tfile.MinioUrl)
 		if err != nil {
 			panic(err.Error())
 		}
